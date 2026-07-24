@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 )
 
 type IPAPI struct {
@@ -44,16 +45,63 @@ func GetISP(proxy string) (isp *IPAPI) {
 	return
 }
 
-func PrintProxy(proxy string, port int) {
+func protocolColor(protocol string) string {
+	switch strings.ToLower(protocol) {
+	case "socks4":
+		return "\033[33m"
+	case "socks5":
+		return "\033[35m"
+	case "https":
+		return "\033[32m"
+	default:
+		return "\033[36m"
+	}
+}
+
+func PrintProxyWithProtocol(proxy string, port int, protocol string) {
+	proto := strings.ToUpper(protocol)
+	if proto == "" {
+		proto = "HTTP"
+	}
+	color := protocolColor(protocol)
 	if config.PrintIps.DisplayIpInfo {
 		ipApi := GetISP(proxy)
 		if ipApi == nil {
-			fmt.Printf("New Proxy \033[32m%s:%d\033[39m Country: \033[34m error\033[39m ISP: \033[34merror\033[39m\n", proxy, port)
+			fmt.Printf("\033[32m[+]\033[39m %s[%s]\033[39m \033[33m%s:%d\033[39m country=unknown city=unknown isp=unknown org=unknown asn=unknown\n", color, proto, proxy, port)
 		} else {
-			fmt.Printf("New Proxy \033[32m%s:%d\033[39m Country: \033[34m %s\033[39m ISP: \033[34m%s\033[39m\n", proxy, port, ipApi.Country, ipApi.Isp)
+			org := ipApi.Org
+			if org == "" {
+				org = ipApi.Isp
+			}
+			isp := ipApi.Isp
+			if isp == "" {
+				isp = org
+			}
+			asn := ipApi.As
+			if asn == "" {
+				asn = "unknown"
+			}
+			location := ipApi.City
+			if location == "" {
+				location = ipApi.RegionName
+			}
+			fmt.Printf("\033[32m[+]\033[39m %s[%s]\033[39m \033[33m%s:%d\033[39m country=%s city=%s isp=%s org=%s asn=%s\n",
+				color,
+				proto,
+				proxy,
+				port,
+				ipApi.Country,
+				location,
+				isp,
+				org,
+				asn,
+			)
 		}
-
 	} else {
-		fmt.Printf("\033[32mNew Proxy %s:%d\033[39m\n", proxy, port)
+		fmt.Printf("\033[32m[+]\033[39m %s[%s]\033[39m \033[33m%s:%d\033[39m\n", color, proto, proxy, port)
 	}
+}
+
+func PrintProxy(proxy string, port int) {
+	PrintProxyWithProtocol(proxy, port, "http")
 }

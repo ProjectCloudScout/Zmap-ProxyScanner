@@ -32,6 +32,10 @@ A Thread Safe fast way to find proxies. Find 2000-5000 working http,socks4,socks
 -o <proxies.txt> - Writes proxy hits to file.
 -input <proxies.txt> - Loads the proxy list and checks it.
 -url https://api.com/proxies - Loads the proxies from an api and checks it.
+-shodan - Discover candidate proxies from Shodan.
+-shodan-port <port> - Port to search for when using -shodan.
+-shodan-protocol <http|socks4|socks5> - Protocol filter for Shodan discovery.
+-shodan-output <file> - Output file for discovered candidates.
   ```
 
 
@@ -43,6 +47,26 @@ A Thread Safe fast way to find proxies. Find 2000-5000 working http,socks4,socks
 # Example Run
   * Be Sure to use an Hosting that allows Portscan just like https://pfcloud.io
   > zmap -p 8080 | ./ZmapProxyScanner -p 8080
+
+  * Shodan discovery example (requires SHODAN_API_KEY)
+  > SHODAN_API_KEY=your-key ./ZmapProxyScanner -shodan -shodan-port 8080 -shodan-protocol http -shodan-output proxies.txt
+
+# Sample Output
+  ```text
+  Shodan discovery complete
+  Candidates discovered: 3
+    - http://198.51.100.10:8080
+    - http://203.0.113.20:8080
+    - http://192.0.2.55:8080
+  Saved to proxies.txt
+  ```
+
+# Verification / Live Stats
+  During a scan, the binary prints live progress every second, for example:
+  ```text
+  Imported [12] IPs Checked [30] IPs (Success: 4, StatusCodeErr: 2, ProxyErr: 1, Timeout: 1) with 3 open http threads
+  ```
+  When you stop the run, it prints a final summary block so the results are easy to verify in the terminal.
 
 # Build
   > Requires go v1.19+
